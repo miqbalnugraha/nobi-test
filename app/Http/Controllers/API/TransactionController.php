@@ -13,8 +13,8 @@ class TransactionController extends Controller
     public function transaction(Request $request) {
         $user_id = $request->user_id;
 
-        if($request->amount === 0.00000001) {
-            return response()->json(['message' => 'amount tidak boleh 0.00000001']);
+        if($request->amount == 0.00000001) {
+            return response()->json(['message' => 'the amount must be more than 0.00000001']);
         }
 
         $validator = Validator::make($request->all(), [
@@ -28,7 +28,7 @@ class TransactionController extends Controller
         }
 
         $balance = Balance::findOrFail($user_id);
-        
+
         if($balance->amount_available < $request->amount) {
             return response()->json(['message' => 'insufficient of amount']);
         }
@@ -51,9 +51,12 @@ class TransactionController extends Controller
             return response()
                 ->json([
                     'trx_id' => $data->trx_id,
-                    'amount' => $data->amount,            
+                    'amount' => bcdiv($data->amount, 1, 6),   
+                    'balance' => bcdiv($balance->amount_available, 1, 6),        
                     'message' => 'Transaction success',
                 ]);
+        } else {
+            return response()->json(['code' => 0, 'massage'=>'Something went wrong']);
         }
     }
 }
