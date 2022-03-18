@@ -6,13 +6,20 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Transaction;
+use App\Models\Balance;
 
 class TransactionController extends Controller
 {
     public function transaction(Request $request) {
+        $user_id = $request->user_id;
+
+        if($request->amount === 0.00000001) {
+            return response()->json(['message' => 'amount tidak boleh 0.00000001']);
+        }
+
         $validator = Validator::make($request->all(), [
             'trx_id' => 'required|string|max:255|unique:transaction,trx_id',
-            'amount' => 'required|float|unique:users,email',
+            'amount' => 'required|numeric|between:0.00000001,50.00000000',
             'user_id' => 'required|integer'
         ]);
 
@@ -20,17 +27,33 @@ class TransactionController extends Controller
             return response()->json($validator->errors());
         }
 
+        $balance = Balance::findOrFail($user_id);
+        
+        if($balance->amount_available < $request->amount) {
+            return response()->json(['message' => 'insufficient of amount']);
+        }
+
         $data = Transaction::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password)
+            'trx_id' => $request->trx_id,
+            'user_id' => $request->user_id,
+            'amount' => $request->amount,
+            'created_at' => \Carbon\Carbon::now(),
+            'updated_at' => \Carbon\Carbon::now()
         ]);
 
-        return response()
-        ->json([
-            'data' => $data,
-            'user_id' => $data->id,            
-            'message' => 'Register success',
-        ]);
+        sleep(30);
+
+        $balance->amount_available = $balance->amount_available - $request->amount;
+        $balance->updated_at = \Carbon\Carbon::now();
+        $query = $balance->save();
+
+        if($query){
+            return response()
+                ->json([
+                    'trx_id' => $data->trx_id,
+                    'amount' => $data->amount,            
+                    'message' => 'Transaction success',
+                ]);
+        }
     }
 }

@@ -14,7 +14,7 @@ class BalanceSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('balances')->insert([
+        DB::table('balance')->insert([
             [
                 'id'    => 1,
                 'user_id' => 1,

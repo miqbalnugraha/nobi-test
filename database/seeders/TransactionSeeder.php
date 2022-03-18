@@ -14,7 +14,7 @@ class TransactionSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('transactions')->insert([
+        DB::table('transaction')->insert([
             [
                 'id'    => 1,
                 'trx_id'  => 'a',
