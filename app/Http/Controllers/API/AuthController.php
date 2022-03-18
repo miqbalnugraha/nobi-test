@@ -22,7 +22,7 @@ class AuthController extends Controller
             return response()->json($validator->errors());
         }
 
-        $user = User::create([
+        $data = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password)
@@ -30,8 +30,8 @@ class AuthController extends Controller
 
         return response()
         ->json([
-            'user_id' => $user->id,
-            'status' => $user,
+            'data' => $data,
+            'user_id' => $data->id,            
             'message' => 'Register success',
         ]);
 
@@ -43,7 +43,7 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $request['email'])->firstOrFail();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('nobiTest')->plainTextToken;
 
         return response()
         ->json([
