@@ -9,3 +9,4 @@
 - Back to your terminal, run "php artisan migrate"
 - Run "php artisan db:seed"
 - Lastly run "php artisan serve"
+- Import nobi-test.postman_collection.json to Postman
