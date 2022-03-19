@@ -30,6 +30,7 @@ Route::group(['prefix' => 'v1'], function(){
 
 Route::group(['middleware' => 'api', 'prefix' => 'v1'], function () {
       Route::post('/transaction', [TransactionController::class, 'transaction']);
+      Route::post('/price/upload', [TransactionController::class, 'import']);
    });
 
 

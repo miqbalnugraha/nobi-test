@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Transaction;
 use App\Models\Balance;
+use Maatwebsite\Excel\Facades\Excel; 
+use Illuminate\Support\Facades\Config;
+use App\Imports\CryptoTransactionImport;
 
 class TransactionController extends Controller
 {
@@ -30,7 +33,7 @@ class TransactionController extends Controller
         $balance = Balance::findOrFail($user_id);
 
         if($balance->amount_available < $request->amount) {
-            return response()->json(['message' => 'insufficient of amount']);
+            return response()->json(['message' => 'insufficient of balance']);
         }
 
         $data = Transaction::create([
@@ -59,4 +62,34 @@ class TransactionController extends Controller
             return response()->json(['code' => 0, 'massage'=>'Something went wrong']);
         }
     }
+
+    public function import(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|mimes:csv,txt|max:100000'
+        ]);
+
+        if($validator->fails()) {
+            return response()->json($validator->errors());
+        }
+
+        try{
+            Config::set('excel::csv.delimiter', ',');
+            Excel::import(new CryptoTransactionImport, request()->file('file')->store('temp'));
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+        
+            foreach ($failures as $failure) {
+                $failure->row(); // row that went wrong
+                $failure->attribute(); // either heading key (if using heading row concern) or column index
+                $failure->errors(); // Actual error messages from Laravel validator
+                $failure->values(); // The values of the row that has failed.
+                }
+            return response()->json($failures);
+            }
+            
+        return response()
+            ->json([       
+                'message' => 'Data has been successfully imported',
+            ]);
+        }
 }
